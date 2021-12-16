@@ -1,3 +1,4 @@
+/* basic normal setting */
 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video, hr {
   margin: 0;
   padding: 0;
@@ -21,7 +22,7 @@ ol, ul {
   list-style: none
 }
 
-/*page background*/
+/* page background */
 .custom-body-color {
   background-image: -moz-linear-gradient( 110deg, #C1ECFA 20%,#719CAA 100%);
   background-image: -webkit-linear-gradient( 110deg, #C1ECFA 20%,#719CAA 100%);
@@ -36,8 +37,7 @@ ol, ul {
   font-size: 1.2em;
 }
 
-/*navbar custom style*/ 
-
+/* navbar custom style */ 
 .nav-menu{
   background-color: #C1ECFA;
   background: -moz-linear-gradient(110deg, #C1ECFA 20%,#719CAA 100%);
@@ -47,12 +47,10 @@ ol, ul {
   -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.1);
   box-shadow: 0px 5px 23px 0px rgba(0, 0, 0, 0.1);
 }
-
 .navbar-nav .nav-link {
   position: relative;
   text-decoration: none;
 }
-
 .navbar-expand-lg .navbar-nav .nav-link {
   padding-right: 1rem;
   padding-left: 1rem;
@@ -67,25 +65,22 @@ ol, ul {
   height: 1px;
   position: absolute;
 }
-
 .navbar-nav .nav-item {
   text-align: center;
 }
-
 #cal-wrap {
   justify-content: center;
   position: flex;
   padding: 0px 25px;
 }
 
+/* style of day view structure */
 .dayview-container {
     position: relative;
     display: flex;
     overflow: hidden;
     align-items: stretch;
     border-left: #70757a 1px solid;
-
-
   }
   .dayview-timestrings-container {
     height: auto;
@@ -179,13 +174,8 @@ ol, ul {
     grid-template-rows: repeat(96, 10px);
     /* grid-template-columns: fit-content(100%); */
   }
-  .dayview-cell {
-    z-index: 2;
-    border-radius: 5px;
-    /* border: 1px solid darkred; */
-    background-color: #53727c;
-    padding: 0 3px;
-  }
+
+  /* red line style*/
   .dayview-now-marker {
     position: absolute;
     z-index: 504;
@@ -204,6 +194,15 @@ ol, ul {
     margin-top: -5px;
     width: 12px;
   }
+
+  /* display format for time block of each event */
+  .dayview-cell {
+    z-index: 2;
+    border-radius: 5px;
+    /* border: 1px solid darkred; */
+    background-color: #53727c;
+    padding: 0 3px;
+  }
   .dayview-cell {
     padding: 3px;
     color: white;
@@ -221,7 +220,6 @@ ol, ul {
   .dayview-cell-extended {
     display: block;
   }
-  
   .dayview-cell-title,
   .dayview-cell-desc {
     white-space: normal;
@@ -229,7 +227,7 @@ ol, ul {
     word-wrap: break-word;
   }
 
-    
+  /* style of buttons on top left */
   #header-btns{
     display:flex;
   }
@@ -248,23 +246,8 @@ ol, ul {
     color: #faf8f5;
     background: #719caa;
   }
-  .modal{
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 10;
   
-    display: none;
-    justify-content: center;
-    align-items: center;
-  
-    width: 100%;
-    height: 100%;
-    /* --m-background is set as inline style */
-    background: var(--m-background);
-  
-  }
-
+  /* style of Month/Year/Day Selection */
   #cal-date { 
     display: flex; 
   }
@@ -280,6 +263,24 @@ ol, ul {
   }
   #cal-mth, #cal-yr, #cal-day { 
     background: #53727c; 
+  }
+
+  /* style of pop up for Notepad */
+  .modal{
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+  
+    display: none;
+    justify-content: center;
+    align-items: center;
+  
+    width: 100%;
+    height: 100%;
+    /* --m-background is set as inline style */
+    background: var(--m-background);
+  
   }
 
   #notepadHeader{

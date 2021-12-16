@@ -231,7 +231,7 @@ header {
 }
 
 
-/* More useful function could be found here */
+/* More useful functionality could be found here */
 .tab-content {
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px;
@@ -291,19 +291,6 @@ header {
 .steps li:not(:last-child) {
     border-bottom: 1px solid #8FBAC8;
 }
-
-
-/* Special View of the Calendar */
-    /* will be changed later */
-.img-gallery .owl-item {
-    box-shadow: 0px 9px 32px 0px rgba(0, 0, 0, 0.07);
-    transform: scale(0.8);
-    transition: all 0.3s ease-in;
-}
-.img-gallery .owl-item.center {
-    transform: scale(1);
-}
-
 
 /* Launch your Calendar */
 .box-icon {
