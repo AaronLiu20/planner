@@ -22,7 +22,7 @@ var cal = {
   // 2. Events aren't being loaded on year/month if a doc doesn't alreay exist. FIXED
   // 3. Listeners save in the session resulting in multiple writes/edit. Clear event listeners somehow.
   // ==>  I have no idea how to fix this... 
-  //      1. Removing the listener after the event triggeres is not working.
+  //      1. Removing the listener after the event triggers is not working.
   //      2. Limiting to single trigger {once: true} is not working.
   //      3. Remoing the listener inside the listener itself also is not working.
 
@@ -38,9 +38,14 @@ var cal = {
               eventChanges.forEach(change => {
                 if (change.type == 'added') {
                   cal.loadData(sDay);
+                  // Add
                 } else if (change.type == 'modified') {
                   cal.loadData(sDay);
+                  // Remove + Add
                 }
+                  else if (change.type == 'removed') {
+                    // Remove
+                  }
               });
             });
   */
@@ -210,7 +215,7 @@ var cal = {
             var sDay = currentDay.firstChild.id;
             var sYear = cal.sYear;
 
-            // Grab documents to modify
+            // Grab document fields to modify
             var nameDoc = document.getElementById("evt-name");
             var descDoc = document.getElementById("evt-details");
             var sTimeDoc = document.getElementById("sevt-time");
@@ -227,11 +232,16 @@ var cal = {
             delBtn.style.display = "inline";
             editBtn.style.display = "inline";
 
+            // Pull current event data to display for editing. 
             db.collection('users').doc(userID).collection('events').doc(sMth + "-" + sYear).collection(sDay.toString()).doc(id).get().then((snapshot) => {
+              // Event name for displaying in the title.
               var tempEvent = snapshot.get('eventName');
-              //var tempDesc = snapshot.get('eventDesc');
+              
+              // Get current DB values.
               nameDoc.value = snapshot.get('eventName');
               descDoc.value = snapshot.get('eventDesc');
+              sTimeDoc.value = snapshot.get('sTime');
+              eTimeDoc.value = snapshot.get('eTime');
 
               //console.log("Event name: " + tempEvent);
               var title = document.getElementById("event-title");
