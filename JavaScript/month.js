@@ -1,32 +1,25 @@
-var cal = {
-  // (A) PROPERTIES
-  mName: ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], // Month Names
-  data: null, // Events for the selected period
-  sDay: 0, // Current selected day
-  sMth: 0, // Current selected month
-  sYear: 0, // Current selected year
-  sMon: false, // Start the week on Monday instead of Sunday (Sunday is standard)
-  militaryTime: false,
-  dummyData: 0,
-
-  // TODO:
+  // TODO (IMPLEMENTATION):
   // Change the following to firebase instead of localStorage:
-  // 1. Initial load of the data. DONE
-  // 2. Saving new data. DONE
-  // 3. Editing current data. DONE
-  // 4. Deleting existing data.
+  // 1. Initial load of the data. -- DONE
+  // 2. Saving new data. -- DONE
+  // 3. Editing current data. -- DONE
+  // 4. Deleting existing data. -- DONE
   // 5. Add listener to load data dynamically so we don't need to refresh.
+  // >> Due to the body listener, I cannot implement this without exisitng bugs trickling down.
+  //    I eventually need to not use the body listener!
 
   // TODO (BUGS):
-  // 1. Events aren't being loaded on month selection! FIXED
-  // 2. Events aren't being loaded on year/month if a doc doesn't alreay exist. FIXED
-  // 3. Listeners save in the session resulting in multiple writes/edit. Clear event listeners somehow.
+  // 1. Events aren't being loaded on month/year selection! FIXED
+  // 2. Events aren't being loaded on year/month if a doc in firebase doesn't alreay exist. FIXED
+  // 3. Adding an event, then immidiately trying to edit it will not work. This is an intended limitation due to the listener bug preventing a live update implementation.
+  // 4. Listeners save in the session resulting in multiple writes/edit. Clear event listeners somehow.
   // ==>  I have no idea how to fix this... 
   //      1. Removing the listener after the event triggers is not working.
   //      2. Limiting to single trigger {once: true} is not working.
-  //      3. Remoing the listener inside the listener itself also is not working.
+  //      3. Un-nesting the listeners is also not working.
 
-  // Unwrap everything from the body event listener? Just get the data-id and store it in a variable that I can use? Possible scope issues.
+  // Only idea I have left to try is implementing the functions in a way where we do not need a body listener.
+  // Surely it can't cause a problem if it doesn't exist...
 
   /* Listener code in case I fix the above bug messing everything up...
    // Real Time Listener (Auto Refresh)
@@ -38,36 +31,34 @@ var cal = {
               eventChanges.forEach(change => {
                 if (change.type == 'added') {
                   cal.loadData(sDay);
-                  // Add
                 } else if (change.type == 'modified') {
+                  // Wipe day events (wipe all children)
+                  // Reload the day.
                   cal.loadData(sDay);
-                  // Remove + Add
                 }
                   else if (change.type == 'removed') {
-                    // Remove
+                    // Remove, this can be done locally. No need for the listener.
                   }
               });
             });
   */
-
-  //Try self destructing listener?
-  /*
-  addBlurListener(element, field) {
-    const listenToBlur = (e) => {
-        e.target.removeEventListener(e.type, listenToBlur);
-        //your stuff
-    };
-    element.addEventListener('blur', listenToBlur);
-  },
-  */
-
-  // Or try searching "how to removeeventlistener from anonymous functions"
 
   /* CURRENT FIREBASE STRUCTURE
   See: loadData() fucntion for efficient (lol?) implementation structure.
   db.collection('users').doc(userID).collection('events').doc(sMth + "-" + sYear).collection(currentDay.toString()).doc(docID).eventName.value;
     Users -> (UID) -> Events -> (mm-yyyy) -> dd -> (UID) -> #DETAILS#
   */
+
+var cal = {
+  // (A) PROPERTIES
+  mName: ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], // Month Names
+  data: null, // Events for the selected period
+  sDay: 0, // Current selected day
+  sMth: 0, // Current selected month
+  sYear: 0, // Current selected year
+  sMon: false, // Start the week on Monday instead of Sunday (Sunday is standard)
+  militaryTime: false,
+  dummyData: 0, // Flag for fixing firebase not recognizing subsequent collections/docs unless the parent doc has a field of data (???).
 
   // (B) DRAW CALENDAR FOR SELECTED MONTH
   list: function () {
@@ -154,7 +145,6 @@ var cal = {
 
     // Create table (boxes) for the rest of the days and load saved data.
     for (var i = 0; i < total; i++) {
-      Hasdata = false;
       // The td html element is a standard cell within the table
       cCell = document.createElement("td");
       // "Empty" spaces for the beginning/end of the month.
@@ -193,6 +183,7 @@ var cal = {
 
     firebase.auth().onAuthStateChanged(firebaseUser => {
       if (firebaseUser) {
+        // Unique user ID for the currently logged in user.
         const userID = firebaseUser.uid;
         //console.log(userID, sMth + "-" + sYear + " " + sDay.toString());
 
@@ -202,6 +193,7 @@ var cal = {
 
         // Event listener for the entire body so when a specific event is clicked, I can pull the UniqueID of the clicked element for the database.
         document.body.addEventListener('click', function (event) {
+          event.stopPropagation();
           //console.log("Clicked event ID: " + event.target.id);
           //console.log("Need to match: 'evt' or 'td' or " + sDayString);
 
@@ -223,6 +215,7 @@ var cal = {
 
             event.stopPropagation();
 
+            // Unique ID tied to the specific document we're modifying in firebase.
             let id = event.target.getAttribute('data-id');
             //console.log("Target atty: " + id);
 
@@ -243,22 +236,24 @@ var cal = {
               sTimeDoc.value = snapshot.get('sTime');
               eTimeDoc.value = snapshot.get('eTime');
 
-              //console.log("Event name: " + tempEvent);
+              // Edit the title of the modal box to match the current event you're editing.
               var title = document.getElementById("event-title");
               title.innerHTML = "<div> EDIT EVENT: " + tempEvent + "</br>" + mName[parseInt(sMth) - 1] + " " + sDay + " " + sYear, "</div>";
 
               editBtn.addEventListener("click", (event2) => {
+                event2.stopPropagation();
 
                 //event.target.style.display = "none";
+                // Save the newly (potentially) edited data once 'edit' is clicked.
                 var eventName = nameDoc.value;
                 var eventDesc = descDoc.value;
                 var sTime = sTimeDoc.value;
                 var eTime = eTimeDoc.value;
 
+                // Write the editied data to the database.
                 db.collection('users').doc(userID).collection('events').doc(sMth + "-" + sYear).collection(sDay.toString()).doc(id).set({
                   eventName: nameDoc.value,
                   eventDesc: descDoc.value,
-                  // Time causing issues if it's not re-set.
                   sTime: sTimeDoc.value,
                   eTime: eTimeDoc.value
                 })
@@ -276,8 +271,11 @@ var cal = {
 
             // Delete event.
             delBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
               // Delete function call.
               db.collection('users').doc(userID).collection('events').doc(sMth + "-" + sYear).collection(sDay.toString()).doc(id).delete();
+
+              // Stop displaying deleted event.
               event.target.style.display = "none";
 
               console.log("Event %c(" + id + ")", 'color: #FF5733', "successfully deleted.");
@@ -307,21 +305,21 @@ var cal = {
             const modal = document.getElementById("myModal");
             saveBtn.style.display = "inline";
 
-            // Label title.
+            // Label title of the modal.
             title.innerHTML = "<div>ADD EVENT <br>" + mName[parseInt(sMth) - 1] + "</b>" + " " + sDay + " " + sYear, "</div>";
 
             // Save event.
             saveBtn.addEventListener("click", (event) => {
+              event.stopPropagation();
+
+              // Save user input values.
               var sTime = document.getElementById("sevt-time").value;
               var eTime = document.getElementById("devt-time").value;
               var eventName = document.getElementById("evt-name").value;
               var eventDesc = document.getElementById("evt-details").value;
 
               db.collection('users').doc(userID).collection('events').doc(sMth + "-" + sYear).collection(sDay.toString()).add({
-                // format is -> nameOfValue: input
-                // KEEP NAMING CONSISTENT, THESE VALUES ARE SPECIFICALLY CALLED
-                // CURRENT EVENT DETAILS: sTime, eTime, eventName, eventDesc
-                // Can easily add more later
+                // Write saved user input to database.
                 sTime: document.getElementById("sevt-time").value,
                 eTime: document.getElementById("devt-time").value,
                 eventName: document.getElementById("evt-name").value,
@@ -334,8 +332,7 @@ var cal = {
               NewCell = document.createElement("div");
 
               // Edit the text displayed in the event cell.
-              // FB doc-id included for pulling the correct doc on click, bad secruity?
-              NewCell.innerHTML = "<div class='evt' id='evt' data-id=''>" + eventName + " " + eTime + "</div>";
+              NewCell.innerHTML = "<div class='evt' id='' data-id=''>" + eventName + " " + eTime + "</div>";
 
               // Grab the current day to append to the correct cell.
               document.getElementById(sDay).innerHTML += NewCell.innerHTML;
@@ -410,6 +407,7 @@ var cal = {
 
         //Coll. -> (DOC) -> Coll. -> (DOC) -> Coll. -> (#DOC#) -> #DETAILS#
         //Users -> (UID) -> Events -> (mm-yyyy) -> dd -> (UID) -> #DETAILS#
+        // Load appropriate piece of data.
         db.collection('users').doc(userID)
           .get().then(
             doc => {
@@ -420,10 +418,6 @@ var cal = {
                     db.collection('users').doc(userID).collection('events').doc(sMth + "-" + sYear).collection(currentDay.toString()).get().then(snapshot => {
                       if (snapshot.docs.length > 0) {
                         snapshot.docs.forEach(doc => {
-                          // When saving we will have to use the format (mm-yyyy) to match this query.
-                          Hasdata = true;
-                          //console.log("Matching Doc ID OK for day " + currentDay + "!");
-
                           // Load the data into the created cell.
                           NewCell = document.createElement("div");
 
@@ -440,7 +434,7 @@ var cal = {
                         console.log("%cNo event found", 'color: #FF5733', "for '" + mName[parseInt(sMth) - 1], currentDay + "'!");
                       }
                     })
-                    // Dummy data needs to be created in firestore documents or it CANNOT be accessed.
+                    // Dummy data needs to be created in firestore documents or it CANNOT be accessed (for some reason...).
                   } else if (cal.dummyData != 1) {
                     console.log("%cNo events", 'color: #FF5733', "for the month of " + mName[parseInt(sMth) - 1], sYear + ".\nCreating dummy data...");
                     db.collection('users').doc(userID).collection('events').doc(sMth + "-" + sYear).set({
